@@ -42,7 +42,7 @@ def _get_connection(queue='default'):
                        password=_get_config_value(queue, 'PASSWORD'),
                        db=_get_config_value(queue, 'DB'))
 
-def _get_queue(name='default', **kwargs):
+def get_queue(name='default', **kwargs):
     kwargs['connection'] = _get_connection(name)
     return Queue(name, **kwargs)
 
@@ -59,7 +59,7 @@ def get_server_url(name):
 def get_worker(*queue_names):
     if not queue_names:
         queue_names = ['default']
-    return Worker([_get_queue(queue_name) for queue_name in queue_names],
+    return Worker([get_queue(queue_name) for queue_name in queue_names],
                   connection=_get_connection(queue_names[0]))
 
 def job(func_or_queue):
@@ -71,9 +71,9 @@ def job(func_or_queue):
         queue = func_or_queue
 
     def wrapper(fn):
-        fn.__module__ = 'test'
+        fn.__module__ = 'app'
         def delay(*args, **kwargs):
-            q = _get_queue(queue)
+            q = get_queue(queue)
             return q.enqueue(fn, *args, **kwargs)
 
         fn.delay = delay
